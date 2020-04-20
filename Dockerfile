@@ -28,7 +28,7 @@ ENV \
     SZIP_VERSION=2.1.1 \
     WEBP_VERSION=1.0.3 \
     ZSTD_VERSION=1.4.3 \
-    OPENSSL_VERSION=1.0.2
+    OPENSSL_VERSION=1.1.1f
 
 # Paths to things
 ENV \

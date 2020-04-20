@@ -1,8 +1,5 @@
-ARG VERSION=1.2.0
-FROM developmentseed/geolambda:${VERSION}
-
-LABEL maintainer="Development Seed <info@developmentseed.org>"
-LABEL authors="Matthew Hanson  <matt.a.hanson@gmail.com>"
+ARG VERSION=2.0.0
+FROM rsgis/geolambda:${VERSION}
 
 ARG PYVERSION=3.7.4
 
@@ -24,5 +21,14 @@ COPY requirements*.txt ./
 RUN \
     pip install -r requirements-pre.txt; \
     pip install -r requirements.txt
+
+# Copy, build, install cumulus
+COPY ./cumulus ./cumulus
+RUN cd cumulus \
+ && pip install wheel \
+ && python3 setup.py bdist_wheel \
+ && pip install dist/snodas-0.0.1-py3-none-any.whl \
+ && cd ../ \
+ && rm -rf ./cumulus
 
 COPY bin/* /usr/local/bin/

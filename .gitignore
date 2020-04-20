@@ -2,3 +2,12 @@
 lambda-deploy.zip
 lambda-layer-deploy.zip
 .DS_Store
+
+**.pyc
+**.whl
+**.tar.gz
+**/*.egg-info/*
+
+lambda/**
+python/lambda/**
+python/cumulus/build/**
