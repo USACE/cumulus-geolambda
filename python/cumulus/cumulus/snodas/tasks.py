@@ -18,7 +18,7 @@ from .core.interpolated_products import (
 )
 from .core.cumulus_integration import post_to_cumulus
 
-def process_and_post(datetime, infile_type, save_method='orm'):
+def process_and_post(datetime, infile_type, save_method='api'):
 
     with TemporaryDirectory() as td:
         processed_files = process_snodas_for_date(datetime, infile_type, td)

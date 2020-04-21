@@ -23,6 +23,7 @@ RUN \
     pip install -r requirements.txt
 
 # Copy, build, install cumulus
+RUN echo "Hello1232"
 COPY ./cumulus ./cumulus
 RUN cd cumulus \
  && pip install wheel \

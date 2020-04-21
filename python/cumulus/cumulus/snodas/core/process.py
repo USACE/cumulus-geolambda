@@ -27,10 +27,8 @@ from ...handyutils.core import (
     mkdir_p
 )
 
-from .helpers import (
-    snodas_get_headerfile,
-    snodas_get_raw_infile
-)
+# snodas module
+from .helpers import snodas_get_headerfile
 from .cumulus_integration import post_to_cumulus
 
 
@@ -254,6 +252,8 @@ def prepare_src_data_for_date(infile, outdir, infile_type):
             )
 
             # Write appropriate .hdr file in same directory, same root name as .bil file
+            hf = snodas_get_headerfile(infile_type)
+            print(f'HERE IS THE HEADERFILE {hf}')
             shutil.copy(
                 snodas_get_headerfile(infile_type),
                 os.path.join(outdir, change_file_extension(f, 'hdr'))
@@ -300,7 +300,7 @@ def warp(infile, outfile, to_srs='EPSG:5070', algorithm='bilinear', tr_x='1000',
     return outfile
 
 
-def process_snodas_for_date(dt, infile_type, outdir):
+def process_snodas_for_date(dt, infile, infile_type, outdir):
 
     def path_factory(directory, file_format, filename_base=None):
         """Generate a unique absolute path for intermediate processing files
@@ -333,18 +333,12 @@ def process_snodas_for_date(dt, infile_type, outdir):
         'cog': {},
     }
 
-    raw_infile = snodas_get_raw_infile(dt, infile_type)
-
     # Make temporary directories for processing
     [mkdir_p('{}/{}'.format(outdir, td)) for td in ('tif', 'cog', 'raw')]
 
     # Returns a directory that contains files in a data format
     # that GDAL can work with (gdalinfo, gdalwarp, etc.)
-    prepared_source_files = prepare_src_data_for_date(
-        raw_infile,
-        path_factory(outdir, 'raw'),
-        infile_type
-    )
+    prepared_source_files = prepare_src_data_for_date(infile, path_factory(outdir, 'raw'), infile_type)
 
     for parameter, filename in snodas_filenames(dt, infile_type).items():
 
@@ -356,7 +350,6 @@ def process_snodas_for_date(dt, infile_type, outdir):
         outfile = translate(infile, path_factory(outdir, 'tif', filename), extra_args=snodas_translate_args(dt, infile_type))
         create_overviews(outfile)
         outfile_cog = translate(outfile, path_factory(outdir, 'cog', filename), extra_args=cog_arguments())
-        
         # Add tif and cloud optimized geotiff to list of outfiles if they were created
         add_to_outdict_if_exists(outfile, 'tif', parameter, processed_files)
         add_to_outdict_if_exists(outfile_cog, 'cog', parameter, processed_files)

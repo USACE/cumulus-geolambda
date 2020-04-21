@@ -23,4 +23,11 @@ setuptools.setup(
         'requests',
     ],
     python_requires='>=3.6',
+
+    package_data={
+        'cumulus': [
+            'data/no_data_areas_swe_20140201.tif',
+            'data/*.hdr',
+        ]
+    },
 )

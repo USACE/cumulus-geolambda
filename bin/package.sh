@@ -19,6 +19,14 @@ mkdir -p $DEPLOY_DIR/share
 rsync -ax $PREFIX/share/gdal $DEPLOY_DIR/share/
 rsync -ax $PREFIX/share/proj $DEPLOY_DIR/share/
 
+# copy gdal binaries
+# https://github.com/developmentseed/geolambda/issues/69
+mkdir -p $DEPLOY_DIR/bin
+cp $PREFIX/bin/gdaladdo $DEPLOY_DIR/bin/
+cp $PREFIX/bin/gdalinfo $DEPLOY_DIR/bin/
+cp $PREFIX/bin/gdal_translate $DEPLOY_DIR/bin/
+cp $PREFIX/bin/gdalwarp $DEPLOY_DIR/bin/
+
 # zip up deploy package
 cd $DEPLOY_DIR
-zip -ruq ../lambda-deploy.zip ./
+zip -ruq ../cwbi-rsgis-cumulus-base.zip ./

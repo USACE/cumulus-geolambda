@@ -5,14 +5,7 @@ import logging
 import os
 import requests
 
-from django.core.files import File
-
-from handyutils.core import checksum
-
-from products.models import (
-    Product, ProductFile
-)
-
+from ...handyutils.core import checksum
 
 def cumulus_product_from_productname(productname):
 
@@ -65,20 +58,20 @@ def save_to_cumulus_api(productname, productfile, productfile_datetime, verify=F
     return r.json()
 
 
-def save_to_cumulus_orm(productname, productfile, productfile_datetime):
-    '''Save a Productfile using the Django ORM'''
+# def save_to_cumulus_orm(productname, productfile, productfile_datetime):
+#     '''Save a Productfile using the Django ORM'''
 
-    with open(productfile, 'rb') as f:
+#     with open(productfile, 'rb') as f:
 
-        product = Product.objects.get(pk=cumulus_product_from_productname(productname))
+#         product = Product.objects.get(pk=cumulus_product_from_productname(productname))
 
-        pf = ProductFile()
-        pf.product = product
-        pf.file = File(f)
-        pf.file.name = 'products/{}/{}'.format(product.name, productfile.split('/')[-1])
-        pf.md5 = checksum(productfile, algorithm='md5')
-        pf.datetime = productfile_datetime
-        pf.save()
+#         pf = ProductFile()
+#         pf.product = product
+#         pf.file = File(f)
+#         pf.file.name = 'products/{}/{}'.format(product.name, productfile.split('/')[-1])
+#         pf.md5 = checksum(productfile, algorithm='md5')
+#         pf.datetime = productfile_datetime
+#         pf.save()
 
 
 def post_to_cumulus(productname, productfile, productfile_datetime, verify=False, api_token=None, save_method='api'):
@@ -86,5 +79,5 @@ def post_to_cumulus(productname, productfile, productfile_datetime, verify=False
     if save_method == 'api':
         save_to_cumulus_api(productname, productfile, productfile_datetime, verify, api_token)
 
-    if save_method == 'orm':
-        save_to_cumulus_orm(productname, productfile, productfile_datetime)
+    # if save_method == 'orm':
+    #     save_to_cumulus_orm(productname, productfile, productfile_datetime)

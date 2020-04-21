@@ -36,7 +36,10 @@ def snodas_get_headerfile(infile_type):
     """
 
     return os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '{}.hdr'.format(infile_type.lower()))
+        os.path.join(
+            os.path.dirname(__file__),
+            "..", "..", "data",
+            '{}.hdr'.format(infile_type.lower()))
     )
 
 

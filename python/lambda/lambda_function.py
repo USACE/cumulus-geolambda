@@ -4,26 +4,36 @@ import sys
 import logging
 
 # set up logger
-logger = logging.getLogger(__file__)
+logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 # commented out to avoid duplicate logs in lambda
-# logger.addHandler(logging.StreamHandler())
+logger.addHandler(logging.StreamHandler())
 
-# imports used for the example code below
+# imported to test loading of libraries
 from osgeo import gdal
+# import pyproj
+# import rasterio
+# import shapely
 
-# not used in code below, but imported to test loading of libraries
-import rasterio
-import pyproj
-import shapely
+from datetime import datetime
+import os
+from urllib.parse import urlsplit
+from urllib.request import urlretrieve
+import tempfile
+
+from cumulus.snodas.core.process import process_snodas_for_date
 
 
-test_filename = 'https://landsat-pds.s3.amazonaws.com/c1/L8/086/240/LC08_L1GT_086240_20180827_20180827_01_RT/LC08_L1GT_086240_20180827_20180827_01_RT_B1.TIF'
+def get_infile():
+    
+    url = 'https://cwbi-cumulus.s3.amazonaws.com/apimedia/products/nohrsc_snodas_raw_unmasked/SNODAS_unmasked_20200420.tar'
+    filename, headers = urlretrieve(url)
+    
+    return os.path.abspath(filename)
 
 
 def lambda_handler(event, context=None):
     """ Lambda handler """
-    logger.debug(event)
 
     # this try block is for testing and info only,
     # it prints out info on the the libgdal binary and paths to linked libraries
@@ -35,19 +45,15 @@ def lambda_handler(event, context=None):
     #except Exception as e:
     #    pass
 
-    # process event payload and do something like this
-    fname = event.get('filename', test_filename)
-    fname = fname.replace('s3://', '/vsis3/')
-    # open and return metadata
-    ds = gdal.Open(fname)
-    band = ds.GetRasterBand(1)
-    stats = band.GetStatistics(0, 1)
-
-    return stats
+    with tempfile.TemporaryDirectory() as td:
+        infile, dt = get_infile(), datetime(year=2020, month=4, day=20)
+        process_snodas_for_date(dt, infile, 'UNMASKED', td)
+        filelist = os.listdir(os.path.join(td, "cog"))
+    
+    return filelist
 
 
 if __name__ == "__main__":
     """ Test lambda_handler """
-    event = {'filename': test_filename}
-    stats = lambda_handler(event)
-    print(stats)
+    # event = {'filename': test_filename}
+    files = lambda_handler(event)
