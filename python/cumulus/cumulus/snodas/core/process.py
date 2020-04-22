@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 
 
 from ...geoprocess.core.base import (
@@ -252,8 +253,6 @@ def prepare_src_data_for_date(infile, outdir, infile_type):
             )
 
             # Write appropriate .hdr file in same directory, same root name as .bil file
-            hf = snodas_get_headerfile(infile_type)
-            print(f'HERE IS THE HEADERFILE {hf}')
             shutil.copy(
                 snodas_get_headerfile(infile_type),
                 os.path.join(outdir, change_file_extension(f, 'hdr'))
@@ -263,6 +262,31 @@ def prepare_src_data_for_date(infile, outdir, infile_type):
     delete_files_by_extension(outdir, ['dat.gz', ])
 
     return outdir
+
+
+def prepared_file_from_tarfile(tar, filename, outdir, infile_type):
+    """Extract a single file from a .tar, transform it into a format GDAL can
+    work with, and return the absolute filepath
+    """
+    # Extract .dat.gz file
+    with tarfile.open(tar) as _tar:
+        outfile = _tar.extract(f'{filename}.dat.gz', path=outdir)
+       
+    # Unzip file and rename ".dat" extension to ".bil"
+    gunzip_file(
+        os.path.join(outdir, f'{filename}.dat.gz'),
+        os.path.join(outdir, change_file_extension(f'{filename}.dat', 'bil'))
+    )
+    # Delete .dat.gz file, it is no longer needed
+    os.remove(os.path.join(outdir, f'{filename}.dat.gz'))
+
+    # Write appropriate .hdr file in same directory, same root name as .bil file
+    shutil.copy(
+        snodas_get_headerfile(infile_type),
+        os.path.join(outdir, change_file_extension(f'{filename}.dat', 'hdr'))
+    )
+
+    return os.path.abspath(os.path.join(outdir, f'{filename}.bil'))
 
 
 def cog_arguments():
@@ -276,28 +300,6 @@ def cog_arguments():
         '-co', 'COPY_SRC_OVERVIEWS=YES',
         '-co', 'COMPRESS=DEFLATE',
     ]
-
-
-def warp(infile, outfile, to_srs='EPSG:5070', algorithm='bilinear', tr_x='1000', tr_y='1000', nodata='-9999', ):
-
-    logging.info('gdalwarp; infile: {}; outfile: {};'.format(infile, outfile))
-
-    cmd = [
-        'gdalwarp', '-of', 'GTiff', '-co', 'TILED=YES', '-co', 'COMPRESS=DEFLATE',
-        '-t_srs', to_srs, '-r', algorithm, '-srcnodata', nodata, '-dstnodata', nodata, '-tr', tr_x, tr_y, '-tap', infile, outfile
-    ]
-
-    logging.debug('run command: {}'.format(' '.join(cmd)))
-
-    p = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-
-    out, err = p.communicate()
-
-    return outfile
 
 
 def process_snodas_for_date(dt, infile, infile_type, outdir):
@@ -336,23 +338,30 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # Make temporary directories for processing
     [mkdir_p('{}/{}'.format(outdir, td)) for td in ('tif', 'cog', 'raw')]
 
-    # Returns a directory that contains files in a data format
-    # that GDAL can work with (gdalinfo, gdalwarp, etc.)
-    prepared_source_files = prepare_src_data_for_date(infile, path_factory(outdir, 'raw'), infile_type)
-
     for parameter, filename in snodas_filenames(dt, infile_type).items():
+        logging.debug(f'working on parameter: {parameter}; filename: {filename}')
 
-        infile = os.path.join(prepared_source_files, '{}.bil'.format(filename))
+        # extract the raw file of interest into something gdal can work with
+        _file = prepared_file_from_tarfile(
+            infile,
+            filename,
+            os.path.join(outdir, "raw"),
+            infile_type
+        )
 
         # NATIVE COORDINATE SYSTEM
         # ========================
         # (1) Save TIF file (translate) (2) Create overviews (pyramids) (3) Save Cloud Optimized Geotiff (translate)
-        outfile = translate(infile, path_factory(outdir, 'tif', filename), extra_args=snodas_translate_args(dt, infile_type))
+        outfile = translate(_file, path_factory(outdir, 'tif', filename), extra_args=snodas_translate_args(dt, infile_type))
         create_overviews(outfile)
         outfile_cog = translate(outfile, path_factory(outdir, 'cog', filename), extra_args=cog_arguments())
         # Add tif and cloud optimized geotiff to list of outfiles if they were created
-        add_to_outdict_if_exists(outfile, 'tif', parameter, processed_files)
         add_to_outdict_if_exists(outfile_cog, 'cog', parameter, processed_files)
+        # Delete tif after cloud optimized geotiff is created
+        os.remove(outfile)
+    
+    # Delete snodas raw .tar file
+    os.remove(infile)
 
     # -------------------------------------------------------------------
     # COMPUTE COLD CONTENT GRID FROM SWE AND SNOWPACK AVERAGE TEMPERATURE
@@ -371,8 +380,10 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
         extra_args=cog_arguments()
     )
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(coldcontent, 'tif', 'coldcontent', processed_files)
     add_to_outdict_if_exists(coldcontent_cog, 'cog', 'coldcontent', processed_files)
+
+    # Delete tif after cloud optimized geotiff is created
+    os.remove(coldcontent)
 
     # ----------------------------------------------------------------
     # COMPUTE SNOWMELT IN MILLIMETERS (UNIT CONVERSION ON SNODAS GRID)
@@ -393,7 +404,9 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     )
 
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(snowmeltmm, 'tif', 'snowmelt', processed_files)
     add_to_outdict_if_exists(snowmeltmm_cog, 'cog', 'snowmelt', processed_files)
+
+    # Delete tif after cloud optimized geotiff is created
+    os.remove(snowmeltmm)
 
     return processed_files
