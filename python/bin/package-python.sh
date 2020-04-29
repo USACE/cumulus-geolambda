@@ -27,7 +27,7 @@ cp -r $DEPLOY_DIR ./python
 rm ./python/lambda_function.py
 
 # zip up deploy package
-zip -ruq cwbi-rsgis-cumulus-python.zip ./python
+zip -ruq corpsmap-cumulus-geolambda-python.zip ./python
 
 # cleanup
 rm -rf ./python

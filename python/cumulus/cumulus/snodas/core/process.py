@@ -30,7 +30,6 @@ from ...handyutils.core import (
 
 # snodas module
 from .helpers import snodas_get_headerfile
-from .cumulus_integration import post_to_cumulus
 
 
 def snodas_filename_prefix(infile_type):
@@ -49,10 +48,10 @@ def snodas_filenames(datetime, infile_type):
     prefix = snodas_filename_prefix(infile_type)
 
     filenames = {
-        'swe': '{}_ssmv11034tS__T0001TTNATS{}05HP001',
-        'snowdepth': '{}_ssmv11036tS__T0001TTNATS{}05HP001',
-        'snowpack_average_temperature': '{}_ssmv11038wS__A0024TTNATS{}05DP001',
-        'snowmelt': '{}_ssmv11044bS__T0024TTNATS{}05DP000',
+        'nohrsc_snodas_swe': '{}_ssmv11034tS__T0001TTNATS{}05HP001',
+        'nohrsc_snodas_snowdepth': '{}_ssmv11036tS__T0001TTNATS{}05HP001',
+        'nohrsc_snodas_snowpack_average_temperature': '{}_ssmv11038wS__A0024TTNATS{}05DP001',
+        'nohrsc_snodas_snowmelt': '{}_ssmv11044bS__T0024TTNATS{}05DP000',
     }
 
     return {k: v.format(prefix, dtstr) for k, v in filenames.items()}
@@ -64,8 +63,8 @@ def computed_filenames(datetime, infile_type):
     prefix = snodas_filename_prefix(infile_type)
 
     return {
-        'coldcontent': '{}_coldcontent_{}'.format(prefix, dtstr),
-        'snowmeltmm': '{}_snowmeltmm_{}'.format(prefix, dtstr)
+        'nohrsc_snodas_coldcontent': '{}_coldcontent_{}'.format(prefix, dtstr),
+        'nohrsc_snodas_snowmeltmm': '{}_snowmeltmm_{}'.format(prefix, dtstr)
     }
 
 
@@ -322,18 +321,15 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
             return os.path.join(directory, 'raw')
 
 
-    def add_to_outdict_if_exists(infile, file_format, keyword, outdict):
+    def add_to_outdict_if_exists(infile, keyword, outdict):
         """Check if a file exists. If so, add it to the provided dictionary
         """
         if os.path.isfile(infile):
-            outdict[file_format][keyword] = infile
+            outdict[keyword] = infile
 
 
     # Keep track of files that are processed
-    processed_files = {
-        'tif': {},
-        'cog': {},
-    }
+    processed_files = {}
 
     # Make temporary directories for processing
     [mkdir_p('{}/{}'.format(outdir, td)) for td in ('tif', 'cog', 'raw')]
@@ -356,7 +352,7 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
         create_overviews(outfile)
         outfile_cog = translate(outfile, path_factory(outdir, 'cog', filename), extra_args=cog_arguments())
         # Add tif and cloud optimized geotiff to list of outfiles if they were created
-        add_to_outdict_if_exists(outfile_cog, 'cog', parameter, processed_files)
+        add_to_outdict_if_exists(outfile_cog, parameter, processed_files)
         # Delete tif after cloud optimized geotiff is created
         os.remove(outfile)
     
@@ -367,20 +363,20 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # COMPUTE COLD CONTENT GRID FROM SWE AND SNOWPACK AVERAGE TEMPERATURE
     # -------------------------------------------------------------------
     coldcontent = snodas_write_coldcontent(
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['snowpack_average_temperature']),
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['swe']),
-        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['coldcontent'])
+        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc_snodas_snowpack_average_temperature']),
+        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc_snodas_swe']),
+        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc_snodas_coldcontent'])
     )
     # Overviews
     create_overviews(coldcontent)
     # Cloud Optimized Geotiff
     coldcontent_cog = translate(
         coldcontent,
-        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['coldcontent']),
+        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc_snodas_coldcontent']),
         extra_args=cog_arguments()
     )
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(coldcontent_cog, 'cog', 'coldcontent', processed_files)
+    add_to_outdict_if_exists(coldcontent_cog, 'nohrsc_snodas_coldcontent', processed_files)
 
     # Delete tif after cloud optimized geotiff is created
     os.remove(coldcontent)
@@ -391,20 +387,20 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # Snowmelt in Millimeters, Native Projection
     snowmeltmm = scale_raster_values(
         0.01,
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['snowmelt']),
-        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['snowmeltmm'])
+        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc_snodas_snowmelt']),
+        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc_snodas_snowmeltmm'])
     )
     # Overviews
     create_overviews(snowmeltmm)
     # Cloud Optimized Geotiff
     snowmeltmm_cog = translate(
         snowmeltmm,
-        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['snowmeltmm']),
+        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc_snodas_snowmeltmm']),
         extra_args=cog_arguments()
     )
 
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(snowmeltmm_cog, 'cog', 'snowmelt', processed_files)
+    add_to_outdict_if_exists(snowmeltmm_cog, 'nohrsc_snodas_snowmelt', processed_files)
 
     # Delete tif after cloud optimized geotiff is created
     os.remove(snowmeltmm)

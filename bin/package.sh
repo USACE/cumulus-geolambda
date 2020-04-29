@@ -29,4 +29,4 @@ cp $PREFIX/bin/gdalwarp $DEPLOY_DIR/bin/
 
 # zip up deploy package
 cd $DEPLOY_DIR
-zip -ruq ../cwbi-rsgis-cumulus-base.zip ./
+zip -ruq ../corpsmap-cumulus-geolambda-base.zip ./

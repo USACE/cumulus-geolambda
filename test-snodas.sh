@@ -1,0 +1,6 @@
+#!/bin/bash
+
+docker run --rm -v ${PWD}/lambda:/var/task -v ${PWD}/../lambda:/opt \
+           -e GDAL_DATA=/opt/share/gdal -e PROJ_LIB=/opt/share/proj \
+           lambci/lambda:python3.7 lambda_function.lambda_handler \
+           '{"Records": [{"eventVersion": "2.0", "eventSource": "aws:s3", "awsRegion": "us-east-1", "eventTime": "1970-01-01T00:00:00.000Z", "eventName": "ObjectCreated:Put", "userIdentity": {"principalId": "EXAMPLE"}, "requestParameters": {"sourceIPAddress": "127.0.0.1"}, "responseElements": {"x-amz-request-id": "EXAMPLE123456789", "x-amz-id-2": "EXAMPLE123/5678abcdefghijklambdaisawesome/mnopqrstuvwxyzABCDEFGH"}, "s3": {"s3SchemaVersion": "1.0", "configurationId": "testConfigRule", "bucket": {"name": "corpsmap-data-incoming", "ownerIdentity": {"principalId": "EXAMPLE"}, "arn": "arn:aws:s3:::cwbi-cumulus"}, "object": {"key": "cumulus/nohrsc_snodas_unmasked/SNODAS_unmasked_20200420.tar", "size": 1024, "eTag": "0123456789abcdef0123456789abcdef", "sequencer": "0A1B2C3D4E5F678901"}}}]}'
