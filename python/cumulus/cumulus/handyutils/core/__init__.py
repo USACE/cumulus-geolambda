@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import shutil
 
 
 def checksum(file, algorithm='SHA256', size=1000000):
@@ -45,6 +46,15 @@ def gunzip_file(infile, outfile):
         content = f.read()
         with open(outfile, 'wb') as out:
             out.write(content)
+
+
+def gzip_file(infile, outfile):
+
+    with open(infile, 'rb') as f_in:
+        with gzip.open(outfile, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    
+    return os.path.abspath(outfile)
 
 
 def delete_files_by_extension(directory, extensions):

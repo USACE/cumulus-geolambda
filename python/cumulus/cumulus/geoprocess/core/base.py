@@ -136,6 +136,44 @@ def set_value_to_nodata(infile, outfile, value):
     return outfile
 
 
+def scale_raster_values(factor, infile, outfile):
+    """Developed as a versatile way to do conversions like millimeters to meters"""
+
+    # infile as a dataset
+    ds = gdal.Open(infile, gdal.GA_ReadOnly)
+    xsize = ds.RasterXSize
+    ysize = ds.RasterYSize
+    geotransform = ds.GetGeoTransform()
+    projection = ds.GetProjection()
+
+    # infile band
+    band = ds.GetRasterBand(1)
+    nodata_value = band.GetNoDataValue()
+
+    # infile array
+    array = band.ReadAsArray(0, 0, xsize, ysize).astype(np.dtype('float32'))
+
+    # scaled_array
+    scaled_array = np.where(array == nodata_value, nodata_value, array * factor)
+
+    # write scaled array to raster
+    scaled_raster = write_array_to_raster(
+        scaled_array, outfile, xsize, ysize, geotransform, projection, gdal.GDT_Float32, nodata_value
+    )
+
+    ds = None
+    xsize = None
+    ysize = None
+    geotransform = None
+    projection = None
+    band = None
+    nodata_value = None
+    array = None
+    scaled_array = None
+
+    return scaled_raster
+
+
 def translate_url_to_vrt(url, outfile, projwin_args):
 
     logging.info(f'translate_url_to_vrt;\n  infile: {url};\n  outfile: {outfile}')

@@ -17,6 +17,7 @@ import tempfile
 
 from ...geoprocess.core.base import (
     create_overviews,
+    scale_raster_values,
     translate,
     write_array_to_raster
 )
@@ -66,9 +67,6 @@ def computed_filenames(datetime, infile_type):
         'nohrsc_snodas_coldcontent': '{}_coldcontent_{}'.format(prefix, dtstr),
         'nohrsc_snodas_snowmeltmm': '{}_snowmeltmm_{}'.format(prefix, dtstr)
     }
-
-
-
 
 
 def snodas_write_coldcontent(snowpack_average_temperature, snow_water_equivalent, outfile):
@@ -121,44 +119,6 @@ def snodas_write_coldcontent(snowpack_average_temperature, snow_water_equivalent
     coldcontent_array = None
 
     return coldcontent_raster
-
-
-def scale_raster_values(factor, infile, outfile):
-    """Developed as a versatile way to do conversions like millimeters to meters"""
-
-    # infile as a dataset
-    ds = gdal.Open(infile, gdal.GA_ReadOnly)
-    xsize = ds.RasterXSize
-    ysize = ds.RasterYSize
-    geotransform = ds.GetGeoTransform()
-    projection = ds.GetProjection()
-
-    # infile band
-    band = ds.GetRasterBand(1)
-    nodata_value = band.GetNoDataValue()
-
-    # infile array
-    array = band.ReadAsArray(0, 0, xsize, ysize).astype(np.dtype('float32'))
-
-    # scaled_array
-    scaled_array = np.where(array == nodata_value, nodata_value, array * factor)
-
-    # write scaled array to raster
-    scaled_raster = write_array_to_raster(
-        scaled_array, outfile, xsize, ysize, geotransform, projection, gdal.GDT_Float32, nodata_value
-    )
-
-    ds = None
-    xsize = None
-    ysize = None
-    geotransform = None
-    projection = None
-    band = None
-    nodata_value = None
-    array = None
-    scaled_array = None
-
-    return scaled_raster
 
 
 def snodas_translate_args(dt, infile_type):
@@ -221,48 +181,6 @@ def snodas_translate_args(dt, infile_type):
     return args
 
 
-def prepare_src_data_for_date(infile, outdir, infile_type):
-
-
-    def specific_tarfile_contents(tar):
-        for tarinfo in tar:
-            if tarinfo.name.split(os.extsep, 1)[1] == 'dat.gz':
-                yield tarinfo
-
-
-    # Absolute filepaths
-    infile = os.path.abspath(infile)
-    outdir = os.path.abspath(outdir)
-
-    # Extract only the required files from the tarfile
-    with tarfile.open(infile) as tar:
-        tar.extractall(
-            members=specific_tarfile_contents(tar),
-            path=outdir
-        )
-
-    # Unzip necessary files
-    for f in os.scandir(outdir):
-        if os.path.splitext(f)[1] == '.gz':
-
-            # Unzip file and rename ".dat" extension to ".bil"
-            gunzip_file(
-                os.path.join(outdir, f),
-                os.path.join(outdir, change_file_extension(f, 'bil'))
-            )
-
-            # Write appropriate .hdr file in same directory, same root name as .bil file
-            shutil.copy(
-                snodas_get_headerfile(infile_type),
-                os.path.join(outdir, change_file_extension(f, 'hdr'))
-            )
-
-    # Delete gzipped versions of files
-    delete_files_by_extension(outdir, ['dat.gz', ])
-
-    return outdir
-
-
 def prepared_file_from_tarfile(tar, filename, outdir, infile_type):
     """Extract a single file from a .tar, transform it into a format GDAL can
     work with, and return the absolute filepath
@@ -286,19 +204,6 @@ def prepared_file_from_tarfile(tar, filename, outdir, infile_type):
     )
 
     return os.path.abspath(os.path.join(outdir, f'{filename}.bil'))
-
-
-def cog_arguments():
-    """List of arguments for producing Cloud Optimized GeoTIFF
-    Included as function so necessary arguments can be shared across
-    many different calls to GDAL utilities
-    """
-
-    return [
-        '-co', 'TILED=YES',
-        '-co', 'COPY_SRC_OVERVIEWS=YES',
-        '-co', 'COMPRESS=DEFLATE',
-    ]
 
 
 def process_snodas_for_date(dt, infile, infile_type, outdir):
@@ -350,7 +255,7 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
         # (1) Save TIF file (translate) (2) Create overviews (pyramids) (3) Save Cloud Optimized Geotiff (translate)
         outfile = translate(_file, path_factory(outdir, 'tif', filename), extra_args=snodas_translate_args(dt, infile_type))
         create_overviews(outfile)
-        outfile_cog = translate(outfile, path_factory(outdir, 'cog', filename), extra_args=cog_arguments())
+        outfile_cog = translate(outfile, path_factory(outdir, 'cog', filename))
         # Add tif and cloud optimized geotiff to list of outfiles if they were created
         add_to_outdict_if_exists(outfile_cog, parameter, processed_files)
         # Delete tif after cloud optimized geotiff is created
@@ -373,7 +278,6 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     coldcontent_cog = translate(
         coldcontent,
         path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc_snodas_coldcontent']),
-        extra_args=cog_arguments()
     )
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
     add_to_outdict_if_exists(coldcontent_cog, 'nohrsc_snodas_coldcontent', processed_files)
@@ -396,7 +300,6 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     snowmeltmm_cog = translate(
         snowmeltmm,
         path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc_snodas_snowmeltmm']),
-        extra_args=cog_arguments()
     )
 
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
