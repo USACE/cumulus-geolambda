@@ -3,4 +3,4 @@ GDAL==3.0.1
 # shapely==1.6.4.post2
 # pyproj==2.4.0
 # rasterstats
-pg8000
+psycopg2-binary
