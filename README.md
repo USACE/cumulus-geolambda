@@ -1,151 +1,30 @@
-# GeoLambda: geospatial AWS Lambda Layer
+# Cumulus-GeoLambda: Meteorologic Gridded Data Processing
 
-The GeoLambda project provides public Docker images and AWS Lambda Layers containing common geospatial native libraries. GeoLambda contains the libraries PROJ.5, GEOS, GeoTIFF, HDF4/5, SZIP, NetCDF, OpenJPEG, WEBP, ZSTD, and GDAL. For some applications you may wish to minimize the size of the libraries by excluding unused libraries, or you may wish to add other libraries. In this case this repository can be used as a template to create your own Docker image or Lambda Layer following the instructions in this README.
+## Summary
 
-This repository also contains additional images and layers for specific runtimes. Using them as a Layer assumes the use of the basee GeoLambda layer.
+Dockerized geospatial dependencies for local development and creating custom AWS Lambda Layers.
 
-- [Python](python/README.md)
+This repository is a fork with modifications from [Developmentseed Geolambda](https://github.com/developmentseed/geolambda). Customizing the original image is a practice encouraged by the original repository writer(s) when you need a certain degree of customization.  Additional information can be found in the readme of that project.
 
-## Usage
+The information in this README.md focuses on the basics to get up and running and the differences introduced post-fork.
 
-While GeoLambda was initially intended for AWS Lambda it is also useful as a base geospatial Docker image. For detailed info on what is included in each image, see the Dockerfile for that version or the [CHANGELOG](CHANGELOG.md). A version summary is provided here:
+## CWBI Environment Setup
 
-| geolambda | GDAL  | Notes |
-| --------- | ----  | ----- |
-| 1.0.0     | 2.3.1 | |
-| 1.1.0     | 2.4.1 | |
-| 1.2.0     | 2.4.2 | Separate Python (3.7.4) image and Lambda Layer added |
-| 2.0.0		| 3.0.1 | libgeotiff 1.5.1, proj 6.2.0 |
+If you're using this project to develop meteorologic data processing workflows for the Civil Works Business Intelligence (CWBI) Amazon Web Services (AWS) environment, you'll need two environment variables set in your .bash_profile or equivalent.  This allows `READ` access to S3 buckets for downloading sample data.  The environment variables are:
 
-#### Environment variables
+* AWS_ACCESS_KEY_ID_CUMULUS_READER=<AWS_ACCESS_KEY_ID>
+* AWS_SECRET_ACCESS_KEY_CUMULUS_READER=<AWS_SECRET_ACCESS_KEY>
 
-When using GeoLambda some environment variables need to be set. These are set in the Docker image, but if using the Lambda Layer they will need to be set:
+## Local Development and Running Tests
 
-- GDAL_DATA=/opt/share/gdal
-- PROJ_LIB=/opt/share/proj   (only needed for GeoLambda 2.0.0+)
+Run the file [build-and-test.sh](build-and-test.sh). This re-builds docker containers and runs sample [AWS S3 Events](https://docs.aws.amazon.com/AmazonS3/latest/dev/notification-content-structure.html).
 
-### Lambda Layers
+For the purpose of this project, an AWS S3 Event can be thought of as the the JSON that is produced when a file is uploaded, deleted, modified, etc. in a given S3 Bucket.  AWS Lambda functions can configured to watch a S3 Bucket (or other AWS service offering) and execute their code whenever an event (or specific kind of event) takes place.
 
-If you just wish to use the publicly available Lambda layers you will need the ARN for the layer in the same region as your Lambda function. Currently, GeoLambda layers are available in `us-east-1`, `us-west-2`, and `eu-central-1`. If you want to use it in another region please file an issue or you can also create your own layer using this repository (see instructions below on 'Create a new version').
+For this project, that means a Lambda function will process a Meteorologic Gridded Data file whenever a new file is uploaded to the S3 bucket.
 
-#### v2.0.0
+JSON to simulate S3 events is located in the [mock_events](mock_events) directory.
 
-| Region | ARN |
-| ------ | --- |
-| us-east-1 | arn:aws:lambda:us-east-1:552188055668:layer:geolambda:4 |
-| us-west-2 | arn:aws:lambda:us-west-2:552188055668:layer:geolambda:4 |
-| eu-central-1 | arn:aws:lambda:eu-central-1:552188055668:layer:geolambda:4 |
+The AWS Lambda environment is simulated using a [lambci/docker-lambda](https://github.com/lambci/docker-lambda) Docker image.  
 
-#### v2.0.0-python
-
-See the [GeoLambda Python README](python/README.md). The Python Lambda Layer includes the libraries `numpy`, `rasterio`, `GDAL`, `pyproj`, and `shapely`. This is an addition to the standard GeoLambda layer; if you wish to use GeoLambda-Python, both layers must be included.
-
-| Region | ARN |
-| ------ | --- |
-| us-east-1 | arn:aws:lambda:us-east-1:552188055668:layer:geolambda-python:3 |
-| us-west-2 | arn:aws:lambda:us-west-2:552188055668:layer:geolambda-python:3 |
-| eu-central-1 | arn:aws:lambda:eu-central-1:552188055668:layer:geolambda-python:3 |
-
-#### v1.2.0
-
-| Region | ARN |
-| ------ | --- |
-| us-east-1 | arn:aws:lambda:us-east-1:552188055668:layer:geolambda:2 |
-| us-west-2 | arn:aws:lambda:us-west-2:552188055668:layer:geolambda:2 |
-| eu-central-1 | arn:aws:lambda:eu-central-1:552188055668:layer:geolambda:2 |
-
-#### v1.2.0-python
-
-See the [GeoLambda Python README](python/README.md). The Python Lambda Layer includes the libraries `numpy`, `rasterio`, `GDAL`, `pyproj`, and `shapely`. This is an addition to the standard GeoLambda layer; if you wish to use GeoLambda-Python, both layers must be included.
-
-| Region | ARN |
-| ------ | --- |
-| us-east-1 | arn:aws:lambda:us-east-1:552188055668:layer:geolambda-python:1 |
-| us-west-2 | arn:aws:lambda:us-west-2:552188055668:layer:geolambda-python:1 |
-| eu-central-1 | arn:aws:lambda:eu-central-1:552188055668:layer:geolambda-python:1 |
-
-#### v1.1.0
-
-| Region | ARN |
-| ------ | --- |
-| us-east-1 | arn:aws:lambda:us-east-1:552188055668:layer:geolambda:1 |
-| us-west-2 | arn:aws:lambda:us-west-2:552188055668:layer:geolambda:1 |
-| eu-central-1 | arn:aws:lambda:eu-central-1:552188055668:layer:geolambda:1 |
-
-
-### Docker images
-
-The Docker images used to create the Lambda layer are also published to Docker Hub, and thus are also suitable for general use as a base image for geospatial applications. 
-
-The developmentseed/geolambda image in Docker Hub is tagged by version.
-
-	$ docker pull developmentseed/geolambda:<version>
-
-Or just include it in your own Dockerfile as the base image.
-
-```
-FROM developmentseed/geolambda:<version>
-```
-
-The GeoLambda image does not have an entrypoint defined, so a command must be provided when you run it. This example will mount the current directory to /work and run the container interactively.
-
-	$ docker run --rm -v $PWD:/home/geolambda -it developmentseed/geolambda:latest /bin/bash
-
-All of the GDAL CLI tools are installed so could be run on images in the current directory.
-
-
-## Development
-
-Contributions to the geolambda project are encouraged. The goal is to provide a turnkey method for developing and deploying geospatial applications to AWS. The 'master' branch in this repository contains the current state as deployed to the Docker Hub images `developmentseed/geolambda:latest` and `devlopmentseed/geolambda-python:latest`, along with a tag of the version. The 'develop' branch is the development version and is not deployed to Docker Hub.
-
-When making a merge to the `master` branch be sure to increment the `VERSION` file. Circle will push the new version as a tag to GitHub and build and push the image to Docker Hub. If a GitHub tag already exists with that version the process will fail.
-
-### Create a new version
-
-Use the Dockerfile here as a template for your own version of GeoLambda. Simply edit it to remove or add additional libraries, then build and tag with your own name. The steps below are used to create a new official version of GeoLambda, replace `developmentseed/geolambda` with your own name.
-
-To create a new version of GeoLambda follow these steps. Note that this is the manual process of what is currently done in CircleCI, so it is not necessary to perform them but they are useful as an example for deploying your own versions.
-
-1. update the version in the `VERSION` file
-
-The version in the VERSION file will be used to tag the Docker images and create a GitHub tag.
-
-2. build the image:
-  
-```
-$ VERSION=$(cat VERSION)
-$ docker build . -t developmentseed/geolambda:${VERSION}
-```
-
-3. Push the image to Docker Hub:
-
-```
-$ docker push developmentseed/geolambda:${VERSION}
-```
-
-4. Create deployment package using the built-in [packaging script](bin/package.sh)
-
-```
-$ docker run --rm -v $PWD:/home/geolambda \
-	-it developmentseed/geolambda:${VERSION} package.sh
-```
-
-This will create a lambda/ directory containing the native libraries and related files, along with a `lambda-deploy.zip` file that can be deployed as a Lambda layer.
-
-5. Push as Lambda layer (if layer already exists a new version will be created)
-
-```
-$ aws lambda publish-layer-version \
-	--layer-name geolambda \
-	--license-info "MIT" \
-	--description "Native geospatial libaries for all runtimes" \
-	--zip-file fileb://lambda-deploy.zip
-```
-
-6. Make layer public (needs to be done each time a new version is published)
-
-```
-$ aws lambda add-layer-version-permission --layer-name geolambda \
-	--statement-id public --version-number 1 --principal '*' \
-	--action lambda:GetLayerVersion
-```
+# @TODO Expand README.md

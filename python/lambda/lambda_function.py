@@ -1,5 +1,6 @@
 import boto3
 import botocore
+import botocore.exceptions
 import importlib
 import os
 import tempfile
@@ -10,7 +11,7 @@ import psycopg2.extras
 
 # set up logger
 logger = logging.getLogger()
-logger.setLevel(logging.CRITICAL)
+logger.setLevel(logging.DEBUG)
 # commented out to avoid duplicate logs in lambda
 logger.addHandler(logging.StreamHandler())
 
@@ -77,7 +78,7 @@ def upload_file(file_name, bucket, object_name=None):
     s3_client = boto3.client('s3')
     try:
         response = s3_client.upload_file(file_name, bucket, object_name)
-    except ClientError as e:
+    except botocore.exceptions.ClientError as e:
         logger.error(e)
         return False
     return True
@@ -138,11 +139,13 @@ def write_database(entries):
 def lambda_handler(event, context=None):
     """ Lambda handler """
 
+    MOCK = True
+
     for record in event['Records']:
 
         bucket = record['s3']['bucket']['name']
         key = unquote_plus(record['s3']['object']['key'])
-        
+
         logger.info(f'Lambda triggered by Bucket {bucket}; Key {key}')
 
         # # Filename and product_name
@@ -166,19 +169,25 @@ def lambda_handler(event, context=None):
             _file = get_infile(bucket, key, os.path.join(td, filename))
             # Process the file and return a list of files
             outfiles = processor.process(_file, td)
+            logger.debug('outfiles: {outfiles}')
             
             # Keep track of successes to send as single database query at the end
             successes = []
             # Valid products in the database
             product_map = get_products()
+            print(product_map)
             for _f in outfiles:
                 # See that we have a valid 
                 if _f["filetype"] in product_map.keys():
                     # Write output files to different bucket
                     write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
-                    upload_success = upload_file(
-                        _f["file"], WRITE_TO_BUCKET, write_key
-                    )
+                    if MOCK:
+                        # Assume good upload to S3
+                        upload_success = True
+                    else:
+                        upload_success = upload_file(
+                            _f["file"], WRITE_TO_BUCKET, write_key
+                        )
                     # Write Productfile Entry to Database
                     if upload_success:
                         successes.append({
