@@ -8,6 +8,7 @@ import logging
 import json
 import psycopg2
 import psycopg2.extras
+import shutil
 
 # set up logger
 logger = logging.getLogger()
@@ -169,7 +170,7 @@ def lambda_handler(event, context=None):
             _file = get_infile(bucket, key, os.path.join(td, filename))
             # Process the file and return a list of files
             outfiles = processor.process(_file, td)
-            logger.debug('outfiles: {outfiles}')
+            logger.debug(f'outfiles: {outfiles}')
             
             # Keep track of successes to send as single database query at the end
             successes = []
@@ -184,6 +185,11 @@ def lambda_handler(event, context=None):
                     if MOCK:
                         # Assume good upload to S3
                         upload_success = True
+                        # Copy file to tmp directory on host
+                        the_host_tmp_dir = "/tmp_on_host/cumulustmp"
+                        os.makedirs(the_host_tmp_dir, exist_ok=True)
+                        #shutil.copy2 will overwrite a file if it already exists.
+                        shutil.copy2(_f["file"], the_host_tmp_dir)
                     else:
                         upload_success = upload_file(
                             _f["file"], WRITE_TO_BUCKET, write_key
