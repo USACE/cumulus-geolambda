@@ -24,7 +24,15 @@ logger.addHandler(logging.StreamHandler())
 
 from urllib.parse import unquote_plus
 
+# Configuration
+###################################
 WRITE_TO_BUCKET = 'corpsmap-data'
+# CUMULUS_MOCK_S3_UPLOAD
+# (for testing without S3 Bucket Upload Access/Permission)
+_mock = os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False")
+if _mock.upper() != "TRUE":
+    CUMULUS_MOCK_S3_UPLOAD = False
+###################################
 
 def get_infile(bucket, key, filepath):
     
@@ -140,8 +148,6 @@ def write_database(entries):
 def lambda_handler(event, context=None):
     """ Lambda handler """
 
-    MOCK = True
-
     for record in event['Records']:
 
         bucket = record['s3']['bucket']['name']
@@ -182,7 +188,7 @@ def lambda_handler(event, context=None):
                 if _f["filetype"] in product_map.keys():
                     # Write output files to different bucket
                     write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
-                    if MOCK:
+                    if CUMULUS_MOCK_S3_UPLOAD:
                         # Assume good upload to S3
                         upload_success = True
                         # Copy file to tmp directory on host

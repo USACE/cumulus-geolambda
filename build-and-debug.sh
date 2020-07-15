@@ -30,6 +30,7 @@ docker run \
     -e CUMULUS_DBNAME=postgres \
     -e CUMULUS_DBPASS=postgres \
     -e CUMULUS_DBUSER=postgres \
+    -e CUMULUS_MOCK_S3_UPLOAD=True \
     --network="container:database_postgres_1" \
     lambci/lambda:build-python3.7 bash
 
