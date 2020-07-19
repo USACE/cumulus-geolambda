@@ -29,10 +29,10 @@ from urllib.parse import unquote_plus
 WRITE_TO_BUCKET = 'corpsmap-data'
 # CUMULUS_MOCK_S3_UPLOAD
 # (for testing without S3 Bucket Upload Access/Permission)
-if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE":
-    # If environment variable is unset or 
+if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE": 
     CUMULUS_MOCK_S3_UPLOAD = True
 else:
+    # If CUMULUS_MOCK_S3_UPLOAD environment variable is unset then CUMULUS_MOCK_S3_UPLOAD will equal False
     CUMULUS_MOCK_S3_UPLOAD = False
 ###################################
 
