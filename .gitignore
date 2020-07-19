@@ -12,3 +12,6 @@ lambda-layer-deploy.zip
 lambda/**
 python/lambda/**
 python/cumulus/build/**
+
+tmp/**
+!tmp/README.md

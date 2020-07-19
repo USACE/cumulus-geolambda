@@ -24,7 +24,17 @@ logger.addHandler(logging.StreamHandler())
 
 from urllib.parse import unquote_plus
 
+# Configuration
+###################################
 WRITE_TO_BUCKET = 'corpsmap-data'
+# CUMULUS_MOCK_S3_UPLOAD
+# (for testing without S3 Bucket Upload Access/Permission)
+if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE":
+    # If environment variable is unset or 
+    CUMULUS_MOCK_S3_UPLOAD = True
+else:
+    CUMULUS_MOCK_S3_UPLOAD = False
+###################################
 
 def get_infile(bucket, key, filepath):
     
@@ -140,8 +150,6 @@ def write_database(entries):
 def lambda_handler(event, context=None):
     """ Lambda handler """
 
-    MOCK = True
-
     for record in event['Records']:
 
         bucket = record['s3']['bucket']['name']
@@ -182,14 +190,12 @@ def lambda_handler(event, context=None):
                 if _f["filetype"] in product_map.keys():
                     # Write output files to different bucket
                     write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
-                    if MOCK:
-                        # Assume good upload to S3
+                    if CUMULUS_MOCK_S3_UPLOAD:
+                        # Mock good upload to S3
                         upload_success = True
                         # Copy file to tmp directory on host
-                        the_host_tmp_dir = "/tmp_on_host/cumulustmp"
-                        os.makedirs(the_host_tmp_dir, exist_ok=True)
-                        #shutil.copy2 will overwrite a file if it already exists.
-                        shutil.copy2(_f["file"], the_host_tmp_dir)
+                        # shutil.copy2 will overwrite a file if it already exists.
+                        shutil.copy2(_f["file"], "/tmp")
                     else:
                         upload_success = upload_file(
                             _f["file"], WRITE_TO_BUCKET, write_key
