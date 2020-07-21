@@ -39,7 +39,7 @@ def prism_convert_to_cog(infile, outdir):
     # COG
     outfile_cog = translate(
         translated,
-        os.path.join(outdir, f"{filename_no_extension}_cog.tif"),
+        os.path.join(outdir, f"{filename_no_extension}_cloud_optimized.tif"),
     )
 
     return outfile_cog
