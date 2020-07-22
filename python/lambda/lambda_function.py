@@ -8,6 +8,7 @@ import logging
 import json
 import psycopg2
 import psycopg2.extras
+import shutil
 
 # set up logger
 logger = logging.getLogger()
@@ -23,7 +24,17 @@ logger.addHandler(logging.StreamHandler())
 
 from urllib.parse import unquote_plus
 
+# Configuration
+###################################
 WRITE_TO_BUCKET = 'corpsmap-data'
+# CUMULUS_MOCK_S3_UPLOAD
+# (for testing without S3 Bucket Upload Access/Permission)
+if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE": 
+    CUMULUS_MOCK_S3_UPLOAD = True
+else:
+    # If CUMULUS_MOCK_S3_UPLOAD environment variable is unset then CUMULUS_MOCK_S3_UPLOAD will equal False
+    CUMULUS_MOCK_S3_UPLOAD = False
+###################################
 
 def get_infile(bucket, key, filepath):
     
@@ -139,8 +150,6 @@ def write_database(entries):
 def lambda_handler(event, context=None):
     """ Lambda handler """
 
-    MOCK = True
-
     for record in event['Records']:
 
         bucket = record['s3']['bucket']['name']
@@ -169,7 +178,7 @@ def lambda_handler(event, context=None):
             _file = get_infile(bucket, key, os.path.join(td, filename))
             # Process the file and return a list of files
             outfiles = processor.process(_file, td)
-            logger.debug('outfiles: {outfiles}')
+            logger.debug(f'outfiles: {outfiles}')
             
             # Keep track of successes to send as single database query at the end
             successes = []
@@ -181,9 +190,12 @@ def lambda_handler(event, context=None):
                 if _f["filetype"] in product_map.keys():
                     # Write output files to different bucket
                     write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
-                    if MOCK:
-                        # Assume good upload to S3
+                    if CUMULUS_MOCK_S3_UPLOAD:
+                        # Mock good upload to S3
                         upload_success = True
+                        # Copy file to tmp directory on host
+                        # shutil.copy2 will overwrite a file if it already exists.
+                        shutil.copy2(_f["file"], "/tmp")
                     else:
                         upload_success = upload_file(
                             _f["file"], WRITE_TO_BUCKET, write_key

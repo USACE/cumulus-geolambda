@@ -27,7 +27,7 @@
                     "arn": "arn:aws:s3:::corpsmap-data-incoming"
                 },
                 "object": {
-                    "key": "cumulus/prism_ppt_early/PRISM_ppt_early_4kmD2_20200712_bil.zip",
+                    "key": "cumulus/prism_tmin_early/PRISM_tmin_early_4kmD2_20200712_bil.zip",
                     "size": 1024,
                     "eTag": "0123456789abcdef0123456789abcdef",
                     "sequencer": "0A1B2C3D4E5F678901"
