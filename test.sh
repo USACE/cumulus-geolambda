@@ -1,9 +1,9 @@
 #!/bin/bash
 
 docker run --rm \
-    -v ${PWD}/lambda:/var/task \
-    -v ${PWD}/../lambda:/opt \
-    -v ${PWD}/../tmp:/tmp \
+    -v ${PWD}/python/lambda:/var/task \
+    -v ${PWD}/lambda:/opt \
+    -v ${PWD}/tmp:/tmp \
     -e GDAL_DATA=/opt/share/gdal \
     -e PROJ_LIB=/opt/share/proj \
     -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID_CUMULUS_READER} \

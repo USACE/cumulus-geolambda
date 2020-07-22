@@ -1,24 +1,13 @@
 #!/bin/bash
 
-VERSION=$(cat VERSION)
-
-# Build GDAL Base Container
-docker build . -t rsgis/geolambda:${VERSION}
-docker run --rm -v $PWD:/home/geolambda -it rsgis/geolambda:${VERSION} package.sh
-
-# Use GDAL Base Container to Build
-# Container with Python Layer and Dependencies
-cd python
-docker build . --build-arg VERSION=${VERSION} -t rsgis/geolambda:${VERSION}-python
-docker run --rm -v ${PWD}:/home/geolambda -t rsgis/geolambda:${VERSION}-python package-python.sh
-
-cd ..
+# Build
+./build.sh
 
 #
 docker run \
     --rm \
     --name lambda_test \
-    -v ${PWD}:/var/task \
+    -v ${PWD}/python/lambda:/var/task \
     -v ${PWD}/lambda:/opt \
     -v ${PWD}/tmp:/tmp \
     -it \
@@ -33,4 +22,3 @@ docker run \
     -e CUMULUS_MOCK_S3_UPLOAD=True \
     --network="container:database_cumulusdb_1" \
     lambci/lambda:build-python3.7 bash
-
