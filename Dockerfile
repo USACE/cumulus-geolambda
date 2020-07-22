@@ -216,4 +216,9 @@ RUN \
 # Copy shell scripts and config files over
 COPY bin/* /usr/local/bin/
 
+# Install AWS CLI
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && ./aws/install
+
 WORKDIR /home/geolambda

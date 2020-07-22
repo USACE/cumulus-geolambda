@@ -23,15 +23,12 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.CORPSMAPCI_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.CORPSMAPCI_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.CORPSMAPCI_AWS_REGION }}
+          aws-access-key-id: ${{ secrets.RSGISCI_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.RSGISCI_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.RSGISCI_AWS_DEFAULT_REGION }}
 
       - name: Build Lambda Layers and Upload to S3
-        run: |
-          build.sh
-          aws s3 cp corpsmap-cumulus-geolambda-base.zip s3://corpsmap-lambda-zips/corpsmap-cumulus-geolambda-base.zip
-          aws s3 cp python/corpsmap-cumulus-geolambda-python.zip s3://corpsmap-lambda-zips/corpsmap-cumulus-geolambda-python.zip
+        run: bash ci.sh
 
       # Runs a single command using the runners shell
       - name: Done
