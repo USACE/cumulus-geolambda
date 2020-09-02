@@ -20,8 +20,6 @@ do
     EXCLUDES+=("--exclude ${E} ")
 done
 
-echo "CHECKING RSYNC"
-echo $(which rsync)
 rsync -ax $PYPATH/ $DEPLOY_DIR/ ${EXCLUDES[@]}
 
 # prepare dir for lambda layer deployment - https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html#configuration-layers-path

@@ -6,7 +6,7 @@ VERSION=$(cat VERSION)
 docker build . -t rsgis/geolambda:${VERSION}
 docker run --rm \
     -v ${GITHUB_WORKSPACE}:/home/geolambda \
-    -it rsgis/geolambda:${VERSION} package.sh
+    -t rsgis/geolambda:${VERSION} package.sh
 
 # Upload to S3
 aws s3 cp ${GITHUB_WORKSPACE}/corpsmap-cumulus-geolambda-base.zip \
@@ -17,7 +17,7 @@ aws s3 cp ${GITHUB_WORKSPACE}/corpsmap-cumulus-geolambda-base.zip \
 docker build python --build-arg VERSION=${VERSION} -t rsgis/geolambda:${VERSION}-python
 docker run --rm \
     -v ${GITHUB_WORKSPACE}/python:/home/geolambda \
-    -it rsgis/geolambda:${VERSION}-python package-python.sh
+    -t rsgis/geolambda:${VERSION}-python package-python.sh
 
 # Upload to S3
 aws s3 cp ${GITHUB_WORKSPACE}/python/corpsmap-cumulus-geolambda-python.zip \

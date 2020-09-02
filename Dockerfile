@@ -1,12 +1,14 @@
 FROM lambci/lambda:build-provided
 
-LABEL maintainer="Development Seed <info@developmentseed.org>"
-LABEL authors="Matthew Hanson  <matt.a.hanson@gmail.com>"
+# Forked From:
+# LABEL maintainer="Development Seed <info@developmentseed.org>"
+# LABEL authors="Matthew Hanson  <matt.a.hanson@gmail.com>"
+LABEL maintainer="US Army Corps of Engineers <email>"
 
 # install system libraries
 RUN \
     yum makecache fast; \
-    yum install -y wget libpng-devel nasm; \
+    yum install -y wget rsync libpng-devel nasm; \
     yum install -y bash-completion --enablerepo=epel; \
     yum clean all; \
     yum autoremove

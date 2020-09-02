@@ -15,8 +15,6 @@ cp -P ${PREFIX}/lib64/libjpeg*.so* $DEPLOY_DIR/lib/
 strip $DEPLOY_DIR/lib/* || true
 
 # copy GDAL_DATA files over
-echo "CHECKING RSYNC"
-echo $(which rsync)
 mkdir -p $DEPLOY_DIR/share
 rsync -ax $PREFIX/share/gdal $DEPLOY_DIR/share/
 rsync -ax $PREFIX/share/proj $DEPLOY_DIR/share/

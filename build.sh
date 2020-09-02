@@ -6,7 +6,7 @@ VERSION=$(cat VERSION)
 docker build . -t rsgis/geolambda:${VERSION}
 docker run --rm \
     -v ${PWD}:/home/geolambda \
-    -it rsgis/geolambda:${VERSION} package.sh
+    -t rsgis/geolambda:${VERSION} package.sh
 
 # Use GDAL Base Container to Build
 # Container with Python Layer and Dependencies
