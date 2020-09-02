@@ -12,7 +12,7 @@ import shutil
 
 # set up logger
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # commented out to avoid duplicate logs in lambda
 logger.addHandler(logging.StreamHandler())
 
@@ -184,7 +184,6 @@ def lambda_handler(event, context=None):
             successes = []
             # Valid products in the database
             product_map = get_products()
-            print(product_map)
             for _f in outfiles:
                 # See that we have a valid 
                 if _f["filetype"] in product_map.keys():
