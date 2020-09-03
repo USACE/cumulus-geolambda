@@ -10,6 +10,8 @@ import psycopg2
 import psycopg2.extras
 import shutil
 
+from cumulus.geoprocess.core.zstats import zstats_generic
+
 # set up logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -213,3 +215,19 @@ def lambda_handler(event, context=None):
             "count": count,
             "productfiles": successes
         }
+
+def statistics(event, context=None):
+    """ Lambda handler """
+
+    for record in event['Records']:
+
+        bucket = record['s3']['bucket']['name']
+        key = unquote_plus(record['s3']['object']['key'])
+        
+        logger.info(f'Lambda triggered by Bucket {bucket}; Key {key}')
+
+        mn_wkt = 'POLYGON((-1394000 1552000,-1394000 3044000,510000 1552000,510000 3044000,-1394000 1552000))'
+        raster = 'https://cumulus.rsgis.dev/apimedia/products/nohrsc_snodas_swe/zz_ssmv11034tS__T0001TTNATS2019030105HP001_cloud_optimized.tif'
+        stats = zstats_generic(f'/vsicurl/{raster}', [mn_wkt])
+
+        print(stats)
