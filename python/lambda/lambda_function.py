@@ -226,8 +226,7 @@ def statistics(event, context=None):
         
         logger.info(f'Lambda triggered by Bucket {bucket}; Key {key}')
 
-        mn_wkt = 'POLYGON((-1394000 1552000,-1394000 3044000,510000 1552000,510000 3044000,-1394000 1552000))'
-        raster = 'https://cumulus.rsgis.dev/apimedia/products/nohrsc_snodas_swe/zz_ssmv11034tS__T0001TTNATS2019030105HP001_cloud_optimized.tif'
-        stats = zstats_generic(f'/vsicurl/{raster}', [mn_wkt])
-
-        print(stats)
+        vector = 'POLYGON((-1394000 1552000,-1394000 3044000,510000 1552000,510000 3044000,-1394000 1552000))'
+        raster = 'https://api.rsgis.dev/cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200903-150000.tif'
+        stats = zstats_generic(f'/vsicurl/{raster}', [vector])
+        print(json.dumps(stats, indent=2))
