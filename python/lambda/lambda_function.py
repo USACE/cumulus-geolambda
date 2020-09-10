@@ -270,14 +270,14 @@ def download(event, context=None):
 
 
             # Notify the Cumulus API of status/progress
-            requests.put(
-                f'http://localhost:3030/cumulus/downloads/{id}',
-                json = {
-                    "id"
-                    "status_id": STATUS['INITIATED'],
-                    "progress": int((idx+1 / filecount)*100)
-                }
-            )
+            # requests.put(
+            #     f'http://localhost:3030/cumulus/downloads/{id}',
+            #     json = {
+            #         "id"
+            #         "status_id": STATUS['INITIATED'],
+            #         "progress": int((idx+1 / filecount)*100)
+            #     }
+            # )
         # --------------------------------
 
         print('Output key is: {}'.format(output_key))
