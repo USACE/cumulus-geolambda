@@ -9,6 +9,7 @@ import json
 import psycopg2
 import psycopg2.extras
 import shutil
+import requests
 
 from cumulus.geoprocess.core.zstats import zstats_generic
 
@@ -231,3 +232,85 @@ def statistics(event, context=None):
         stats = zstats_generic(f'/vsicurl/{raster}', [mn_wkt])
 
         print(stats)
+
+def download(event, context=None):
+
+    STATUS = {
+    'FAILED': 'a553101e-8c51-4ddd-ac2e-b011ed54389b',
+    'INITIATED': '94727878-7a50-41f8-99eb-a80eb82f737a',
+    'SUCCESS': '3914f0bd-2290-42b1-bc24-41479b3a846f'
+    }
+
+    id, output_bucket, output_key, contents = event['id'], event['output_bucket'], event['output_key'], event['contents']
+    filecount = len(contents)
+
+    # Get product count from event contents
+    with tempfile.TemporaryDirectory() as td:
+        print(f'Working in temporary directory: {td}')
+        # --------------------------------
+        # loop over files in incoming event
+        for idx in range(filecount):
+
+            # Filename and product_name
+            pathparts = contents[idx]['key'].split('/')
+            product_name, filename = pathparts[1], pathparts[-1]                       
+
+            # Download specified file
+            logger.info(f"Downloading input file: {contents[idx]['key']}")
+            _file = get_infile(contents[idx]['bucket'], contents[idx]['key'], os.path.join(td, filename))
+
+
+            # logger.info(f'Process download input file: {product_name}; file: {filename}')
+
+            # Transform current file into single output dss file
+            #
+            # Needs code
+            #
+            #######################################################
+
+
+            # Notify the Cumulus API of status/progress
+            requests.put(
+                f'http://localhost:3030/cumulus/downloads/{id}',
+                json = {
+                    "id"
+                    "status_id": STATUS['INITIATED'],
+                    "progress": int((idx+1 / filecount)*100)
+                }
+            )
+        # --------------------------------
+
+        print('Output key is: {}'.format(output_key))
+
+        # Create a fake dss file for testing
+        #################################################
+        _outfile = '{}/{}'.format(td, os.path.basename(output_key))
+        print('Outfile is: {}'.format(_outfile))
+        f = open(_outfile, "w")
+        f.write("Fake dss file")
+        f.close()
+        #################################################
+
+        # Upload the final output file to S3        
+        if CUMULUS_MOCK_S3_UPLOAD:
+            # Mock good upload to S3
+            upload_success = True
+            # Copy file to tmp directory on host
+            # shutil.copy2 will overwrite a file if it already exists.
+            # shutil.copy2(_f["file"], "/tmp")
+        else:
+            upload_success = upload_file(
+                _outfile, WRITE_TO_BUCKET, output_key
+            )
+        
+
+        print(WRITE_TO_BUCKET)
+        print(output_key)
+        print(os.path.basename(_outfile))
+        
+
+    return json.dumps({
+        "success": "SOMETHING",
+    })
+
+    print(event)

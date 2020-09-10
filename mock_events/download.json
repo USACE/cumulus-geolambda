@@ -1,0 +1,13 @@
+{
+    "id": "233bf9b3-9ca6-497f-806a-9d198a28abdb",
+    "output_bucket": "corpsmap-data",
+    "output_key": "cumulus/download/dss/download_202009101545.dss",
+    "contents": [
+        {
+            "name": "ncep_mrms_gaugecorr_qpe_01h", 
+            "dss_fpart": "NCEP-MRMS-QPE", 
+            "bucket": "corpsmap-data", 
+            "key": "cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200903-150000.tif"
+        }
+    ]
+}
