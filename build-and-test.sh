@@ -15,7 +15,10 @@
 # ./test.sh ./mock_events/ncep_rtma_ru_anl.json
 
 # NCEP MRMS GaugeCorr QPE 01H
-./test.sh ./mock_events/ncep_mrms_gaugecorr_qpe_01h.json
+# ./test.sh ./mock_events/ncep_mrms_gaugecorr_qpe_01h.json
 
-# NCEP MRMSv12 01H QPE
-# ncep_mrms_v12_MultiSensor_QPE_01H_Pass1
+# NCEP MRMSv12 01H QPE Pass 1
+# ./test.sh ./mock_events/ncep_mrms_v12_MultiSensor_QPE_01H_Pass1.json
+
+# NCEP MRMSv12 01H QPE Pass 2
+./test.sh ./mock_events/ncep_mrms_v12_MultiSensor_QPE_01H_Pass2.json
