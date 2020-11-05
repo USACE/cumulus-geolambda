@@ -308,4 +308,11 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # Delete tif after cloud optimized geotiff is created
     os.remove(snowmeltmm)
 
-    return processed_files
+    # Format dictionary as list of files
+    outfile_list = []
+    for k, v in outfile_dict.items():
+        outfile_list.append(
+            {"file": v, "filetype": k, "datetime": dt.isoformat()}
+        )
+
+    return outfile_list

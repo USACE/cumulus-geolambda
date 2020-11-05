@@ -16,3 +16,6 @@
 
 # NCEP MRMS GaugeCorr QPE 01H
 ./test.sh ./mock_events/ncep_mrms_gaugecorr_qpe_01h.json
+
+# NCEP MRMSv12 01H QPE
+# ncep_mrms_v12_MultiSensor_QPE_01H_Pass1
