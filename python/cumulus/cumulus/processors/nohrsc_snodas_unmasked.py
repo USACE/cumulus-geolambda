@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
 
@@ -15,7 +15,7 @@ def process(infile, outdir):
         m = re.match(r"SNODAS_unmasked_([0-9]+).tar", os.path.basename(infile))
     
         if m is not None:
-            return datetime.strptime(m[1], '%Y%m%d') + datetime.timedelta(hours=6)
+            return datetime.strptime(m[1], '%Y%m%d') + timedelta(hours=6)
         
         return None
     
