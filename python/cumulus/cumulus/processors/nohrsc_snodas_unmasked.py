@@ -15,7 +15,7 @@ def process(infile, outdir):
         m = re.match(r"SNODAS_unmasked_([0-9]+).tar", os.path.basename(infile))
     
         if m is not None:
-            return datetime.strptime(m[1], '%Y%m%d')
+            return datetime.strptime(m[1], '%Y%m%d') + datetime.timedelta(hours=6)
         
         return None
     
@@ -24,12 +24,6 @@ def process(infile, outdir):
     if dt is None:
         return []
 
-    outfile_dict = process_snodas_for_date(dt, infile, 'UNMASKED', outdir)
-
-    # Probably better to implement this in the snodas/core later
-    outfile_list = []
-    for k, v in outfile_dict.items():
-        outfile_list.append({"file": v, "filetype": k, "datetime": dt.isoformat()})
-    #
+    outfile_list = process_snodas_for_date(dt, infile, 'UNMASKED', outdir)
 
     return outfile_list
