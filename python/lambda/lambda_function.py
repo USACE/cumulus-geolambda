@@ -137,7 +137,7 @@ def write_database(entries):
         conn = db_connection()
         c = conn.cursor()
         psycopg2.extras.execute_values(
-            c, "INSERT INTO productfile (datetime, file, product_id) VALUES %s", values,
+            c, "INSERT INTO productfile (datetime, file, product_id) VALUES %s ON CONFLICT ON CONSTRAINT product_unique_datetime DO NOTHING", values,
         )
         conn.commit()
     except Exception as e:

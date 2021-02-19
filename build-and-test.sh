@@ -6,7 +6,7 @@
 # Tests: Product Processing
 
 # snodas_unmasked
-# ./test.sh ./test_json/nohrsc_snodas_unmasked.json
+# ./test.sh ./mock_events/nohrsc_snodas_unmasked.json
 
 # prism_ppt_early
 # ./test.sh ./mock_events/prism_ppt_early.json
@@ -21,4 +21,4 @@
 # ./test.sh ./mock_events/ncep_mrms_v12_MultiSensor_QPE_01H_Pass1.json
 
 # NCEP MRMSv12 01H QPE Pass 2
-./test.sh ./mock_events/ncep_mrms_v12_MultiSensor_QPE_01H_Pass2.json
+# ./test.sh ./mock_events/ncep_mrms_v12_MultiSensor_QPE_01H_Pass2.json
