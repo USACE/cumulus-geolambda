@@ -22,3 +22,6 @@
 
 # NCEP MRMSv12 01H QPE Pass 2
 # ./test.sh ./mock_events/ncep_mrms_v12_MultiSensor_QPE_01H_Pass2.json
+
+# WPC QPF 2.5KM 
+./test.sh ./mock_events/wpc_qpf_2p5km.json

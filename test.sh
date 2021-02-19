@@ -13,5 +13,5 @@ docker run --rm \
     -e CUMULUS_DBPASS=postgres \
     -e CUMULUS_DBUSER=postgres \
     -e CUMULUS_MOCK_S3_UPLOAD=True \
-    --network="container:database_cumulusdb_1" \
+    --network="container:cumulus-api_cumulusdb_1" \
     lambci/lambda:python3.7 lambda_function.lambda_handler "$(cat $1)"
