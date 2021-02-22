@@ -13,7 +13,7 @@ def process(infile, outdir):
     outfile_cog = prism_convert_to_cog(infile, outdir)
 
     outfile_list = [
-        { "filetype": "prism_tmax_early", "file": outfile_cog, "datetime": dt.isoformat()},
+        { "filetype": "prism_tmax_early", "file": outfile_cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list

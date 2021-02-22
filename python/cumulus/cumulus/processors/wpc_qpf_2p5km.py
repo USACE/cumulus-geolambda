@@ -10,9 +10,13 @@ def process(infile, outdir):
 
     # Date String
     dtStr = info(infile)['bands'][0]["metadata"][""]['GRIB_VALID_TIME']
-
     # Get Datetime from String Like "1599008400 sec UTC"
     dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
+
+    # Version (Forecast Issue Time)
+    verStr = info(infile)['bands'][0]["metadata"][""]['GRIB_REF_TIME']
+    # Get Datetime from String Like "1599008400 sec UTC"
+    vt = datetime.fromtimestamp(int(verStr.split(" ")[0]))
 
     # Extract Band
     tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"))
@@ -28,7 +32,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "wpc_qpf_2p5km", "file": cog, "datetime": dt.isoformat()},
+        { "filetype": "wpc_qpf_2p5km", "file": cog, "datetime": dt.isoformat(), "version": vt.isoformat() },
     ]
 
     return outfile_list
