@@ -312,7 +312,7 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     outfile_list = []
     for k, v in processed_files.items():
         outfile_list.append(
-            {"file": v, "filetype": k, "datetime": dt.isoformat()}
+            {"file": v, "filetype": k, "datetime": dt.isoformat(), "version": None }
         )
 
     return outfile_list

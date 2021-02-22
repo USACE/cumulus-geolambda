@@ -129,7 +129,7 @@ def get_products():
 def write_database(entries):
     
     def dict_to_tuple(d):
-        return tuple([d['datetime'], d['file'], d['product_id']])
+        return tuple([d['datetime'], d['file'], d['product_id'], d['version']])
     
     values = [dict_to_tuple(e) for e in entries]
 
@@ -137,7 +137,7 @@ def write_database(entries):
         conn = db_connection()
         c = conn.cursor()
         psycopg2.extras.execute_values(
-            c, "INSERT INTO productfile (datetime, file, product_id) VALUES %s ON CONFLICT ON CONSTRAINT product_unique_datetime DO NOTHING", values,
+            c, "INSERT INTO productfile (datetime, file, product_id, version) VALUES %s ON CONFLICT ON CONSTRAINT unique_product_version_datetime DO NOTHING", values,
         )
         conn.commit()
     except Exception as e:
@@ -207,6 +207,7 @@ def lambda_handler(event, context=None):
                             "product_id": product_map[_f["filetype"]],
                             "datetime": _f['datetime'],
                             "file": write_key,
+                            "version": _f['version']
                         })
             
             count = write_database(successes)

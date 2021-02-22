@@ -34,7 +34,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "ncep_rtma_ru_anl_airtemp", "file": cog, "datetime": dt.isoformat()},
+        { "filetype": "ncep_rtma_ru_anl_airtemp", "file": cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list
