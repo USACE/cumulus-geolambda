@@ -8,10 +8,7 @@ def process(infile, outdir):
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
 
-    import json
-
     fileinfo = info(infile)
-    print(json.dumps(fileinfo, indent=2))
     for band in fileinfo["bands"]:
         band_number = str(band["band"])
         band_meta = band["metadata"][""]
