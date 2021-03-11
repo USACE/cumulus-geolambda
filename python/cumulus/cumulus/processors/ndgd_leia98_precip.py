@@ -36,7 +36,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "ndgd_ltia98_airtemp", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ndgd_leia98_precip", "file": cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list
